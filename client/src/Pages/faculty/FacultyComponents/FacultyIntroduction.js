@@ -1,0 +1,112 @@
+import React, { Component } from "react";
+import {
+  IconButton,
+  Grid,
+  Paper,
+} from "@material-ui/core";
+import PersonIcon from "@material-ui/icons/Person";
+import ProfilePage from "./FacultyProfileComponents/profile";
+import FullScreenModel from './../../FullScreenModel';
+import { withRouter } from "react-router-dom";
+
+import axios from "axios";
+
+class FacultyIntroduction extends Component {
+  state = {
+    project: [],
+    faculty:{},
+    open1: false,
+  };
+
+  componentDidMount() {
+    var a = localStorage.getItem("user");
+    var data = {
+      PFACULTY: a,
+      faculty_id:a
+    };
+
+    if (a) {
+      axios
+        .post(
+          "http://localhost:5000/project/addproject/getFacultyProjectDetails",
+          data
+        )
+        .then(res => {
+          this.setState({
+            project: res.data
+          });
+        })
+        .catch(err => console.log(err));
+
+        axios
+        .post(
+          "http://localhost:5000/project/addFaculty/getIndividualFacultyDetails",
+          data
+        )
+        .then(res => {
+          console.log(res.data[0])
+          this.setState({
+            faculty:res.data[0]
+          })
+        })
+        .catch(err => console.log(err));
+    } else {
+      alert("We Are Unable To Identify Your Id So Please Login Again");
+      this.props.history.push("/login");
+    }
+  }
+
+     
+  handleClickOpenProfile = () => {    
+    this.setState({
+        open1: true
+    });      
+  };
+
+  handleCloseProfile = () => {
+    this.setState({
+        open1: false
+    });
+    this.componentDidMount();
+  };  
+
+  render() {
+    console.log(this.state.project);
+    return (
+       
+        <div >
+          <Paper style={{ padding: 1, width: "100%" }}>
+            <Grid container direction="row" alignItems="center" xs={12}>
+              <Grid justify="flex-start">
+                <h3 style={{ marginLeft: 20 }}>
+                  Welcome {this.state.faculty.FIRST_NAME+" "+this.state.faculty.LAST_NAME} (
+                  {this.state.faculty._id}) !
+                </h3>
+                <h4 style={{ marginLeft: 20 }}>
+                  Total No. Of Projects : {this.state.project.length}
+                </h4>
+              </Grid>
+              <Grid justify="flex-end">
+                <IconButton
+                  style={{ marginLeft: "950px" }}
+                  color="primary"
+                  variant="outlined"
+                  onClick={() => this.handleClickOpenProfile()}
+                >
+                  <PersonIcon style={{ fontSize: 45 }} />
+                </IconButton>
+              </Grid>
+            </Grid>
+          </Paper>
+
+
+
+          
+          <FullScreenModel component={<ProfilePage handleClose={this.handleCloseProfile}/>} open={this.state.open1} handleClose={this.handleCloseProfile} title=" My Profile"/>          
+
+        </div>
+    );
+  }
+}
+
+export default withRouter(FacultyIntroduction);
